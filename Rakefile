@@ -15,7 +15,7 @@ begin
   require "rspec/core"
   require "rspec/core/rake_task"
 
-  RSpec::Core::RakeTask.new(:spec, "app:db:test:prepare")
+  RSpec::Core::RakeTask.new(:spec, "app:db:setup")
 
   task default: :spec
 rescue LoadError
