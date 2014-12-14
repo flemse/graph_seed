@@ -3,46 +3,53 @@ require "active_support"
 module GraphSeed
   class Seeder
     class Relation < Struct.new(:name, :collection?, :polymorphic?); end
-    cattr_accessor :current_depth, :max_depth, :ignored_relations, :graph, :errors, :debug
-    attr_accessor :record
+    mattr_accessor :current_depth, :max_depth, :ignored_relations, :graph, :errors, :debug
+    attr_accessor :record, :parent
 
     self.current_depth = 0
     self.graph = {}
     self.errors = []
 
-    def self.configure(options = {})
-      options.assert_valid_keys(:debug, :max_depth, :ignored)
+    def configure(options = {})
+      options.assert_valid_keys(:debug, :max_depth, :ignored, :parent)
       self.debug = options[:debug] || false
       self.max_depth = options[:max_depth] || Float::INFINITY
       self.current_depth = 0
       self.graph = {}
       self.ignored_relations = options[:ignored] || {}
-      self
     end
 
     def initialize(record, options = {})
+      configure(options) unless options[:parent]
+      self.parent = parent
       self.record = record
       self.graph[class_name.to_sym] ||= []
     end
 
     def to_seed
       data = []
-      data << "#{var_name} = #{record.class.to_s}.create(#{attributes})"
+      if new_record?
+        data << "#{var_name} = #{record.class.to_s}.create(#{attributes})"
+        add_record
+      end
+
       return data if self.too_deep?
       begin
         relations.each do |r|
           if r.collection?
             record.send(r.name).each do |nr|
-              builder = SeedBuilder.new(nr)
+              builder = Seeder.new(nr, parent: self)
               if builder.present? && builder.new_record?
+                add_record
                 data << builder.to_seed
               end
             end
           elsif r.polymorphic?
           else
             nested_record = record.send(r.name)
-            builder = SeedBuilder.new(nested_record) if nested_record.present?
+            builder = Seeder.new(nested_record, parent: self) if nested_record.present?
             if builder.present? && builder.new_record?
+              add_record
               data << builder.to_seed
             end
           end
@@ -55,12 +62,11 @@ module GraphSeed
     end
 
     def new_record?
-      is_new = !self.graph[class_name.to_sym].include?(record.id)
-      if is_new
-        self.graph[class_name.to_sym] << record.id
-      end
+      !self.graph[class_name.to_sym].include?(record.id)
+    end
 
-      is_new
+    def add_record
+      self.graph[class_name.to_sym] << record.id
     end
 
     def ignored?
@@ -80,7 +86,7 @@ module GraphSeed
       @attributes ||= record.serializable_hash
       .except(*%w(id created_at updated_at cmm_ids))
       .map do |key, value|
-        "#{key}: \"#{value}\".#{attribute_type(value)}"
+        "#{key}: #{attribute_type(value)}"
       end.join(", ")
     end
 
@@ -89,9 +95,9 @@ module GraphSeed
       when Date, DateTime, ActiveSupport::TimeWithZone
         "to_datetime"
       when Integer
-        "to_i"
+        "#{value}"
       else
-        "to_s"
+        "\"#{value}\""
       end
     end
 
@@ -104,7 +110,7 @@ module GraphSeed
     end
 
     def relations
-      record.reflections.values.map do |relation|
+      record.class.reflections.values.map do |relation|
         Relation.new(relation.name, relation.collection?, relation.options[:polymorphic] == true)
       end.reject do |r|
         ignored_relations[r.name.to_sym] == true
