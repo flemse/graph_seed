@@ -8,9 +8,10 @@ APP_RAKEFILE = File.expand_path("../spec/dummy/Rakefile", __FILE__)
 
 load "rails/tasks/engine.rake"
 
+Dir[File.join(File.dirname(__FILE__), "lib/tasks/**/*.rake")].each {|f| load f }
+
 Bundler::GemHelper.install_tasks
 require "pry"
-
 begin
   require "rspec/core"
   require "rspec/core/rake_task"
