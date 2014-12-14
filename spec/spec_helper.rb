@@ -6,12 +6,21 @@ require "rspec/rails"
 require "pry"
 
 Rails.backtrace_cleaner.remove_silencers!
+Rails.application.eager_load!
 
 RSpec.configure do |config|
-  config.before(:suite) do
+  config.before(:each) do
     DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.clean_with(:truncation)
     Rails.application.load_seed # loading seeds
+  end
+end
+
+def count_models
+  ActiveRecord::Base.descendants.reject do |model|
+    model.to_s == "ActiveRecord::SchemaMigration"
+  end.map do |model|
+    [model.to_s, model.count]
   end
 end
 
