@@ -107,7 +107,7 @@ module GraphSeed
       case value
       when Date, DateTime, ActiveSupport::TimeWithZone
         "to_datetime"
-      when Integer
+      when Integer, Array
         "#{value}"
       else
         "\"#{value}\""

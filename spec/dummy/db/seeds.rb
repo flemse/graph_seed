@@ -5,6 +5,7 @@ Company.create!(
   employees: Employee.create!([
     {
       name: "Flemming",
+      lucky_numbers: [1, 2, 3, "nan"],
       projects: Project.create!([
         {
           name: "Sms"
