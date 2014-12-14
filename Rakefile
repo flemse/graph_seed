@@ -15,9 +15,9 @@ begin
   require "rspec/core"
   require "rspec/core/rake_task"
 
-  RSpec::Core::RakeTask.new(:spec, "app:db:setup")
+  RSpec::Core::RakeTask.new(:spec)
 
-  task default: :spec
+  task default: ["app:db:setup", :spec]
 rescue LoadError
   puts "Error loading rspec"
 end
