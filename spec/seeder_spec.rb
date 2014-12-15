@@ -7,9 +7,11 @@ describe GraphSeed::Seeder do
     seed = gs.to_seed
 
     expect(seed).to eq([
-      "company_1 = Company.create!(name: \"Flightlogger\")",
-      "employee_1 = Employee.create!(company: company_1, lucky_numbers: [1, 2, 3, \"nan\"], name: \"Flemming\")",
-      "project_1 = Project.create!(employee: employee_1, name: \"Sms\")"
+      flightlogger,
+      flemming,
+      project_1,
+      kenneth,
+      settings
     ])
   end
 
@@ -19,9 +21,10 @@ describe GraphSeed::Seeder do
     seed = gs.to_seed
 
     expect(seed).to eq([
-      "company_1 = Company.create!(name: \"Flightlogger\")",
-      "employee_1 = Employee.create!(company: company_1, lucky_numbers: [1, 2, 3, \"nan\"], name: \"Flemming\")"
+      flightlogger,
+      flemming,
+      kenneth,
+      settings
     ])
-
   end
 end

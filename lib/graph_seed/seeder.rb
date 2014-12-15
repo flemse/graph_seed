@@ -1,7 +1,7 @@
 module GraphSeed
     class Seeder
     class Relation < Struct.new(:name, :collection?, :polymorphic?); end
-    mattr_accessor :current_depth, :max_depth, :ignored_relations, :graph, :errors, :debug, :create_method
+    mattr_accessor :current_depth, :max_depth, :ignored_relations, :graph, :errors, :debug, :create_method, :verbose
 
     attr_accessor :record, :parent
 
@@ -10,11 +10,12 @@ module GraphSeed
     self.errors = []
 
     def configure(options = {})
-      options.assert_valid_keys(:debug, :max_depth, :ignored, :_nested)
+      options.assert_valid_keys(:debug, :max_depth, :ignored, :verbose, :_nested)
       self.debug = options[:debug] || false
       self.max_depth = options[:max_depth] || Float::INFINITY
       self.current_depth = 0
       self.graph = {}
+      self.verbose = options[:verbose] || false
       self.ignored_relations = options[:ignored] || {}
       self.create_method = :create!
     end
@@ -27,6 +28,7 @@ module GraphSeed
     end
 
     def to_seed
+      puts "Seeding #{var_name}" if self.verbose
       data = []
       if new_record?
         data << "#{var_name} = #{record.class.to_s}.#{create_method.to_s}(#{attributes})"
@@ -84,14 +86,15 @@ module GraphSeed
       return "" if debug
 
       @attributes ||= record.serializable_hash
-      .except(*%w(id created_at updated_at cmm_ids))
-      .map do |key, value|
+      .except(*%w(id created_at updated_at cmm_ids)).reject do |key, value|
+        value.nil?
+      end.map do |key, value|
         attribute_map(key, value)
       end.join(", ")
     end
 
     def attribute_map(key, value)
-      if key.match /_id$/
+      if key.match(/_id$/) && relations.any? { |r| r.name == key.gsub(/_id$/, '').to_sym }
         value = key.gsub(/id$/, value.to_s)
         key = key.gsub(/_id$/, "")
         "#{key}: #{value}"
@@ -104,10 +107,10 @@ module GraphSeed
       case value
       when Date, DateTime, ActiveSupport::TimeWithZone
         "to_datetime"
-      when Integer, Array
+      when Integer, Array, TrueClass, FalseClass
         "#{value}"
       else
-        "\"#{value}\""
+        "\"#{Shellwords.escape(value)}\""
       end
     end
 
