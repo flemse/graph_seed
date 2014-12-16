@@ -1,4 +1,5 @@
 require "spec_helper"
+require 'fileutils'
 
 describe "Reseed database" do
   it "recreates database" do
@@ -8,7 +9,7 @@ describe "Reseed database" do
     seed = gs.to_seed
 
     path = GraphSeed.root_path + "/tmp/seeds.rb"
-
+    FileUtils.mkdir_p(File.dirname(path))
     File.open(path, "w") do |f|
       f << seed.join("\n")
     end
