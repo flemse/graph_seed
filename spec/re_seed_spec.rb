@@ -10,6 +10,7 @@ describe "Reseed database" do
 
     path = GraphSeed.root_path + "/tmp/seeds.rb"
     FileUtils.mkdir_p(File.dirname(path))
+
     File.open(path, "w") do |f|
       f << seed.join("\n")
     end
