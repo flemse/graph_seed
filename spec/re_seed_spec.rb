@@ -1,5 +1,5 @@
 require "spec_helper"
-require 'fileutils'
+require "fileutils"
 
 describe "Reseed database" do
   it "recreates database" do

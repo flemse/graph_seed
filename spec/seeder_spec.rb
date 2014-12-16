@@ -9,6 +9,7 @@ describe GraphSeed::Seeder do
     expect(seed).to eq([
       flightlogger,
       flemming,
+      tag_1,
       project_1,
       kenneth,
       settings
@@ -23,6 +24,7 @@ describe GraphSeed::Seeder do
     expect(seed).to eq([
       flightlogger,
       flemming,
+      tag_1,
       kenneth,
       settings
     ])

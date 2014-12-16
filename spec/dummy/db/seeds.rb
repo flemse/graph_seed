@@ -7,6 +7,7 @@ Company.create!(
     {
       name: "Flemming",
       lucky_numbers: [1, 2, 3, "nan"],
+      tags: Tag.create!([{name: "test"}]),
       projects: Project.create!([
         {
           name: "Sms",

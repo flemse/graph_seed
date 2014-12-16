@@ -27,4 +27,10 @@ ActiveRecord::Schema.define(version: 1) do
     t.integer :company_id
   end
 
+  create_table :tags, force: true do |t|
+    t.integer :tagable_id
+    t.string :tagable_type
+    t.text :name
+  end
+
 end

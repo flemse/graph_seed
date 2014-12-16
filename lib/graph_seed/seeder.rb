@@ -97,6 +97,7 @@ module GraphSeed
       if key.match(/_id$/) && relations.any? { |r| r.name == key.gsub(/_id$/, '').to_sym }
         value = key.gsub(/id$/, value.to_s)
         key = key.gsub(/_id$/, "")
+        binding.pry if value == "tagable_1"
         "#{key}: #{value}"
       else
         "#{key}: #{attribute_type(value)}"
