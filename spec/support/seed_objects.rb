@@ -7,7 +7,7 @@ def flemming
 end
 
 def kenneth
-  "employee_2 = Employee.create!(company: company_1, name: \"Kenneth\", admin: true)"
+  "employee_2 = Employee.create!(company: company_1, name: \"Kenneth\", admin: true, comment: \"this is a test of \\\"quotes\\\"\")"
 end
 
 def project_1

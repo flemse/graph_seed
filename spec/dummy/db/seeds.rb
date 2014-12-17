@@ -17,7 +17,8 @@ Company.create!(
     },
     {
       name: "Kenneth",
-      admin: true
+      admin: true,
+      comment: "this is a test of \"quotes\""
     }
   ])
 )

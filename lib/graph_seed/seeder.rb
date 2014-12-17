@@ -59,6 +59,7 @@ module GraphSeed
       rescue => e
         errors << e
       ensure
+        raise errors.first if errors.any?
         return data.flatten
       end
     end
@@ -97,7 +98,7 @@ module GraphSeed
       key_relation = key_is_relation(key)
       if key_relation
         if key_relation.polymorphic?
-          value = "#{record.send("#{key_relation.name.to_s}_type").downcase}_#{value}"
+          value = "#{record.association(key_relation.name).klass.to_s.downcase}_#{value}"
         else
           value = "#{key_relation.name.to_s}_#{value}"
         end
@@ -115,11 +116,15 @@ module GraphSeed
       case value
       when Date, DateTime, ActiveSupport::TimeWithZone
         "to_datetime"
-      when Integer, Array, TrueClass, FalseClass
+      when Integer, Float, Array, TrueClass, FalseClass
         "#{value}"
       else
-        "\"#{Shellwords.escape(value)}\""
+        "\"#{escape value}\""
       end
+    end
+
+    def escape(value)
+      value.gsub("\"", "\\\"")
     end
 
     def var_name
@@ -132,7 +137,11 @@ module GraphSeed
 
     def relations
       record.class.reflections.values.map do |relation|
-        Relation.new(relation.name, relation.collection?, relation.options[:polymorphic] == true)
+        Relation.new(
+          relation.name,
+          relation.collection?,
+          relation.options[:polymorphic] == true
+        )
       end.reject do |r|
         ignored_relations[r.name.to_sym] == true
       end
