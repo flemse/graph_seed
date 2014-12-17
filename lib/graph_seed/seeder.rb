@@ -94,14 +94,23 @@ module GraphSeed
     end
 
     def attribute_map(key, value)
-      if key.match(/_id$/) && relations.any? { |r| r.name == key.gsub(/_id$/, '').to_sym }
-        value = key.gsub(/id$/, value.to_s)
-        key = key.gsub(/_id$/, "")
-        binding.pry if value == "tagable_1"
-        "#{key}: #{value}"
+      key_without_id = key.gsub(/_id$/, "")
+
+      key_relation = key_is_relation(key_without_id)
+      if key_relation
+        if key_relation.polymorphic?
+          value = "#{record.send("#{key_without_id}_type").downcase}_#{value}"
+        else
+          value = "#{key_without_id}_#{value}"
+        end
+        "#{key_without_id}: #{value}"
       else
         "#{key}: #{attribute_type(value)}"
       end
+    end
+
+    def key_is_relation(key)
+      relations.select { |r| r.name == key.to_sym }.first
     end
 
     def attribute_type(value)
