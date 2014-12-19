@@ -2,16 +2,17 @@ module GraphSeed
   class Graph
     attr_accessor :graph, :max_depth
     def initialize(options = {})
+      options.assert_valid_keys(:max_depth)
       self.max_depth = options[:max_depth] || Float::INFINITY
-      self.depth = 0
+      self.graph = {}
     end
 
     def <<(record)
-      self.graph[record_class_name(record)] ||= [] << record
+      graph_position(record) << record.id
     end
 
     def exists?(record)
-      self.graph[record_class_name(record)].include?(record.id)
+      graph_position(record).include?(record.id)
     end
 
     def new_record?(record)
@@ -23,6 +24,11 @@ module GraphSeed
     end
 
     private
+
+    def graph_position(record)
+      self.graph[record_class_name(record)] ||= []
+    end
+
     def record_class_name(record)
       record.class.to_s.gsub("::", "_").downcase.to_sym
     end

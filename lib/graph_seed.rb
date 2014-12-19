@@ -1,5 +1,6 @@
 require "active_support"
 require "graph_seed/paths"
+require "graph_seed/graph"
 require "graph_seed/seeder"
 
 module GraphSeed

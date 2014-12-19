@@ -1,22 +1,18 @@
 module GraphSeed
     class Seeder
     class Relation < Struct.new(:name, :collection?, :polymorphic?); end
-    mattr_accessor :current_depth, :max_depth, :ignored_relations, :graph, :errors, :debug, :create_method, :verbose
+    mattr_accessor :ignored_relations, :graph, :errors, :debug, :create_method, :verbose
 
     attr_accessor :record, :parent
 
-    self.current_depth = 0
-    self.graph = {}
     self.errors = []
 
     def configure(options = {})
       options.assert_valid_keys(:debug, :max_depth, :ignored, :verbose, :_nested)
-      self.debug = options[:debug] || false
-      self.max_depth = options[:max_depth] || Float::INFINITY
-      self.current_depth = 0
-      self.graph = {}
-      self.verbose = options[:verbose] || false
-      self.ignored_relations = options[:ignored] || {}
+      self.debug = options.fetch(:debug, false)
+      self.graph = ::GraphSeed::Graph.new max_depth: options[:max_depth]
+      self.verbose = options.fetch(:verbose, false)
+      self.ignored_relations = options.fetch(:ignored, {})
       self.create_method = :create!
     end
 
@@ -24,7 +20,6 @@ module GraphSeed
       configure(options) unless options[:_nested]
       self.parent = parent
       self.record = record
-      self.graph[class_name.to_sym] ||= []
     end
 
     def to_seed
@@ -65,11 +60,11 @@ module GraphSeed
     end
 
     def new_record?
-      !self.graph[class_name.to_sym].include?(record.id)
+      graph.new_record?(record)
     end
 
     def add_record
-      self.graph[class_name.to_sym] << record.id
+      graph << record
     end
 
     def ignored?
@@ -77,10 +72,7 @@ module GraphSeed
     end
 
     def too_deep?
-      current_depth = self.current_depth
-      self.current_depth += 1
-
-      self.max_depth < current_depth
+      graph.too_deep?
     end
 
     def attributes
@@ -145,10 +137,6 @@ module GraphSeed
       end.reject do |r|
         ignored_relations[r.name.to_sym] == true
       end
-    end
-
-    def record
-      @record
     end
   end
 end
